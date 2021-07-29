@@ -5,15 +5,18 @@ thread_local! {
     static CLOCK: RefCell<Box<dyn Clock>> = RefCell::new(Box::new(SystemTimeClock(Cell::new(0))));
 }
 
-
+/// A trait for a clock that can get the time (in milliseconds since a given epoch) and 
+/// will wait for the next millisecond.
 pub trait Clock {
     fn get_time(&self) -> u64;
 
     fn wait(&self);
 }
 
+/// A Clock implementation that uses SystemTime to provide millisecond precision using 2020-01-01 as the epoch.
 struct SystemTimeClock(Cell<u64>);
 
+/// A Clock implementation that can be used for tests. Time will not progress unless wait is called, then 1 ms will pass.
 struct MockClock(Cell<u64>);
 
 impl Clock for SystemTimeClock {
@@ -67,6 +70,7 @@ pub fn wait() {
     })
 }
 
+/// Set the mock clock to be used.
 pub fn setup_mock_clock() {
     CLOCK.with(|c| {
         let ts = c.borrow().get_time();
@@ -92,14 +96,5 @@ mod tests {
 
     }
 
-    #[test]
-    fn test_mock_clock() {
-        crate::clock::with_mock_clock(|c| {
-            let ts = c.get_time();
-            c.wait();
-
-            assert_eq!(ts + 1, c.get_time());
-        })
-    }
     
 }

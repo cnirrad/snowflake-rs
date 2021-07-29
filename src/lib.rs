@@ -5,6 +5,7 @@ mod clock;
 
 const MAX_SEQ_NUM: u16 = 4095;
 
+/// Generator of unique 64 bit ID's that are roughly time sortable. 
 #[derive(Debug)]
 pub struct Snowflake {
     pub node_id: u16,
@@ -20,6 +21,7 @@ fn create_id(ts: u64, node: u16, seq: u16) -> u64 {
     ts_bits | node_bits | (seq as u64)
 }
 
+/// Given a 64 bit ID, this will return the Snowflake object that the ID represents.
 pub fn parse_id(id: u64) -> Snowflake {
 
     let node_id = (id & 0x3FF000) >> 12;
@@ -52,12 +54,12 @@ impl Snowflake {
             if self.seq_num > MAX_SEQ_NUM {
                 clock::wait();
                 self.seq_num = 0;
-                self.ts = u64::max(self.ts, clock::get_time());
+                self.ts = clock::get_time();
             } else {
-                self.ts = u64::max(self.ts, sys_time);
+                self.ts = sys_time;
             }
         } else {
-            self.ts = u64::max(self.ts, sys_time);
+            self.ts = sys_time;
             self.seq_num = 0;
         }
 
